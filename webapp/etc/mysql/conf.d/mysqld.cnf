@@ -1,0 +1,10 @@
+  [mysqld]
+  # スロークエリログの設定
+  slow_query_log = 1
+  slow_query_log_file = /var/log/mysql/mysql-slow.log
+  long_query_time = 0
+  log_queries_not_using_indexes = 1
+
+  # その他のパフォーマンス測定用設定（必要に応じてコメント解除）
+  # general_log = 1
+  # general_log_file = /var/log/mysql/mysql-query.log
