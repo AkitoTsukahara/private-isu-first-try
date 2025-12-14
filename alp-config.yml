@@ -1,0 +1,39 @@
+# alp設定ファイル
+# 使い方: docker compose logs nginx --no-log-prefix | grep '^{' | alp json --config alp-config.yml
+
+# ソート順（sum: 合計時間, avg: 平均時間, count: リクエスト数, max: 最大時間）
+sort: sum
+reverse: true
+
+# URLパターンのマッチング
+# IDなどの動的な部分をグルーピングして集計
+matching_groups:
+  - "/posts/[0-9]+"
+  - "/image/[0-9]+\\.(jpg|png|gif)"
+  - "/@[0-9a-zA-Z]+"
+  - "/comment"
+  - "/login"
+  - "/register"
+  - "/logout"
+  - "/admin/banned"
+
+# URIフィールド名
+uri_key: uri
+
+# メソッドフィールド名
+method_key: method
+
+# ステータスコードフィールド名
+status_key: status
+
+# レスポンスタイムのフィールド名（数値型）
+response_time_key: request_time
+
+# 表示するカラム数の制限
+limit: 5000
+
+# 除外するパターン（静的ファイルなど）
+# excludes:
+#   - "/favicon.ico"
+#   - "/css/.*"
+#   - "/js/.*"
