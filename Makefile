@@ -66,12 +66,12 @@ docker-logs:
 
 # ベンチマーク関連
 bench:
-	cd benchmarker && ./bin/benchmarker -t "http://localhost" -u ./userdata
+	docker run --rm --network host private-isu-benchmarker /bin/benchmarker -u /opt/userdata -t http://localhost
 
 bench-clean: log-clear
 	@echo "Logs cleared. Running benchmark..."
 	@sleep 2
-	cd benchmarker && ./bin/benchmarker -t "http://localhost" -u ./userdata
+	docker run --rm --network host private-isu-benchmarker /bin/benchmarker -u /opt/userdata -t http://localhost
 
 # ログ分析
 log-clear:
