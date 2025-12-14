@@ -100,7 +100,7 @@ alp-simple:
 slow-query-digest:
 	@echo "=== MySQL Slow Query Analysis ==="
 	@echo ""
-	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest
+	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest --limit 10
 
 slow-query-clear:
 	cd webapp && docker compose exec mysql sh -c "echo -n > /var/log/mysql/mysql-slow.log"
@@ -123,7 +123,7 @@ save-slow-query:
 	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
 	OUTPUT_FILE="output/pt-query-digest_$$TIMESTAMP.txt"; \
 	echo "Saving pt-query-digest analysis to $$OUTPUT_FILE ..."; \
-	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest > "../$$OUTPUT_FILE"; \
+	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest --limit 10 > "../$$OUTPUT_FILE"; \
 	echo "Saved to $$OUTPUT_FILE"
 
 save-analysis: save-alp save-slow-query
