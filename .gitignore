@@ -19,3 +19,7 @@ portal/tmp
 
 .DS_Store
 .idea
+
+# Analysis output and logs
+output/
+webapp/log/

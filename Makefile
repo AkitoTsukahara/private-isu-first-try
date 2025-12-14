@@ -1,5 +1,7 @@
 .PHONY: help init docker-up docker-down docker-restart docker-logs docker-rebuild
 .PHONY: bench bench-clean log-clear alp alp-simple
+.PHONY: slow-query-digest slow-query-clear mysql-log-clear
+.PHONY: save-alp save-slow-query save-analysis
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -23,9 +25,19 @@ help:
 	@echo "  make bench-clean    - ログクリア後にベンチマーク実行"
 	@echo ""
 	@echo "Log Analysis:"
-	@echo "  make alp            - アクセスログ分析（詳細版）"
-	@echo "  make alp-simple     - アクセスログ分析（シンプル版）"
-	@echo "  make log-clear      - nginxアクセスログをクリア"
+	@echo "  make alp                 - アクセスログ分析（詳細版）"
+	@echo "  make alp-simple          - アクセスログ分析（シンプル版）"
+	@echo "  make log-clear           - nginxアクセスログをクリア"
+	@echo ""
+	@echo "MySQL Slow Query Analysis:"
+	@echo "  make slow-query-digest   - スロークエリログを分析（pt-query-digest）"
+	@echo "  make slow-query-clear    - スロークエリログをクリア"
+	@echo "  make mysql-log-clear     - nginx + MySQLログを両方クリア"
+	@echo ""
+	@echo "Save Analysis Results:"
+	@echo "  make save-alp            - alpの分析結果をファイルに保存"
+	@echo "  make save-slow-query     - pt-query-digestの分析結果をファイルに保存"
+	@echo "  make save-analysis       - alp + pt-query-digest両方の分析結果を保存"
 
 # 初期セットアップ
 init: webapp/sql/dump.sql.bz2 benchmarker/userdata/img
@@ -83,3 +95,38 @@ alp:
 
 alp-simple:
 	./analyze-log-simple.sh
+
+# MySQLスロークエリ分析
+slow-query-digest:
+	@echo "=== MySQL Slow Query Analysis ==="
+	@echo ""
+	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest
+
+slow-query-clear:
+	cd webapp && docker compose exec mysql sh -c "echo -n > /var/log/mysql/mysql-slow.log"
+	@echo "MySQL slow query log cleared!"
+
+mysql-log-clear: log-clear slow-query-clear
+	@echo "All logs cleared (nginx + MySQL)!"
+
+# 分析結果を保存
+save-alp:
+	@mkdir -p output
+	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
+	OUTPUT_FILE="output/alp_$$TIMESTAMP.txt"; \
+	echo "Saving alp analysis to $$OUTPUT_FILE ..."; \
+	./analyze-log-simple.sh > "$$OUTPUT_FILE"; \
+	echo "Saved to $$OUTPUT_FILE"
+
+save-slow-query:
+	@mkdir -p output
+	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
+	OUTPUT_FILE="output/pt-query-digest_$$TIMESTAMP.txt"; \
+	echo "Saving pt-query-digest analysis to $$OUTPUT_FILE ..."; \
+	cd webapp && docker compose exec -T mysql cat /var/log/mysql/mysql-slow.log | pt-query-digest > "../$$OUTPUT_FILE"; \
+	echo "Saved to $$OUTPUT_FILE"
+
+save-analysis: save-alp save-slow-query
+	@echo ""
+	@echo "=== Analysis results saved to output/ directory ==="
+	@ls -lh output/ | tail -5
