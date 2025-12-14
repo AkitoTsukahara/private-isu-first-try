@@ -7,6 +7,7 @@ services:
     volumes:
       - ./etc/nginx/conf.d:/etc/nginx/conf.d
       - ./public:/public
+      - ./log/nginx:/var/log/nginx
     ports:
       - "80:80"
     networks:
@@ -48,6 +49,7 @@ services:
       - mysql:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
       - ./etc/mysql/conf.d:/etc/mysql/conf.d
+      - ./log/mysql:/var/log/mysql
     ports:
       - "3306:3306"
     networks:
