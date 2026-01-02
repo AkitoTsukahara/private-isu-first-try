@@ -122,13 +122,10 @@ module Isuconp
             ).first
           end
           post[:comments] = comments.reverse
-
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
-
-          posts.push(post) if post[:user][:del_flg] == 0
-          break if posts.length >= POSTS_PER_PAGE
+            post[:user] = {
+                account_name: post[:account_name],
+            }
+            posts.push(post)
         end
 
         posts
@@ -227,8 +224,15 @@ module Isuconp
 
     get '/' do
       me = get_session_user()
-
-      results = db.query('SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC')
+        results = db.query("
+        SELECT
+                p.id, p.user_id, p.body, p.mime, p.created_at, u.account_name
+              FROM posts AS p
+              JOIN users AS u ON (p.user_id = u.id)
+              WHERE u.del_flg = 0
+              ORDER BY p.created_at DESC
+              LIMIT #{POSTS_PER_PAGE}
+        ")
       posts = make_posts(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
